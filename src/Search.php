@@ -19,6 +19,7 @@ class Search
     private $domain = null;
     private $host = null;
     private $list = array();
+    public $supportKeyWordsAndDescription = false;
 
     public function run($url)
     {
@@ -115,6 +116,9 @@ class Search
 
     private function findParam($xpath, $url)
     {
+        if (!$this->supportKeyWordsAndDescription) {
+            return;
+        }
         $metas = $xpath->evaluate("/html/head/meta");
         for ($i = 0; $i < $metas->length; $i++) {
             $meta = $metas->item($i);

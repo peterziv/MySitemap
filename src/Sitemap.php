@@ -11,9 +11,10 @@ namespace ZKit\seo {
     class Sitemap
     {
 
-        public function run($url)
+        public function run($url, $addKeyWordsAndDescription = false)
         {
             $search = new Search();
+            $search->supportKeyWordsAndDescription = $addKeyWordsAndDescription;
             $this->genearteXml($search->run($url));
         }
 
