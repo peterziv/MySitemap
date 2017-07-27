@@ -1,5 +1,4 @@
 <?php
-
 /**
  * MySitemap
  * @license  GNU LESSER GENERAL PUBLIC LICENSE Version 2.1
@@ -18,7 +17,7 @@ namespace ZKit\seo {
             $this->genearteXml($search->run($url));
         }
 
-        function genearteXml($list)
+        private function genearteXml($list)
         {
             //创建一个新的 DOM文档
             $dom = new \DOMDocument('1.0', 'UTF-8');
@@ -30,37 +29,38 @@ namespace ZKit\seo {
 
             $lastmodVal = date("Y-m-d");
             foreach ($list as $url => $val) {
-            $this->addUrl($dom, $urlset, $url, $lastmodVal, $val['changefreq'], $val['priority']);
+                $val['loc'] = $url;
+                $val['lastmod'] = $lastmodVal;
+
+                $this->addUrl($dom, $urlset, $val);
             }
 
             $dom->save('sitemap.xml');
         }
 
-
-        public function addUrl($dom, &$urlset, $locVal, $lastmodVal, $freqVal, $priorityVal = '1.0')
+        private function addUrl($dom, $urlset, $var = array())
         {
             $url = $dom->createElement('url');
             $urlset->appendChild($url);
+            $this->addPriorities($dom, $url, $var);
+        }
 
-            $loc = $dom->createElement('loc');
-            $url->appendChild($loc);
-            $locValue = $dom->createTextNode($locVal);
-            $loc->appendChild($locValue);
+        private function addPriorities($dom, $node, $var)
+        {
+            $keys = array('loc', 'lastmod', 'changefreq', 'priority', 'keywords', 'description');
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $var)) {
+                    $this->add($dom, $node, $key, $var[$key]);
+                }
+            }
+        }
 
-            $lastmod = $dom->createElement('lastmod');
-            $url->appendChild($lastmod);
-            $lastmodValue = $dom->createTextNode($lastmodVal);
-            $lastmod->appendChild($lastmodValue);
-
-            $freq = $dom->createElement('changefreq');
-            $url->appendChild($freq);
-            $freqValue = $dom->createTextNode($freqVal);
-            $freq->appendChild($freqValue);
-
-            $priority = $dom->createElement('priority');
-            $url->appendChild($priority);
-            $priorityValue = $dom->createTextNode($priorityVal);
+        private function add($dom, $node, $key, $value)
+        {
+            $priority = $dom->createElement($key);
+            $priorityValue = $dom->createTextNode($value);
             $priority->appendChild($priorityValue);
+            $node->appendChild($priority);
         }
 
     }
