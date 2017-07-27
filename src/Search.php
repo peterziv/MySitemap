@@ -35,6 +35,12 @@ class Search
         return $this->list;
     }
 
+    private function emailCheck($email)
+    {
+        $pattern = "/^([0-9A-Za-z\\-_\\.]+)@([0-9a-z]+\\.[a-z]{2,3}(\\.[a-z]{2})?)$/i";
+        return preg_match($pattern, $email);
+    }
+
     public function lookup($url = '', $deep = 0)
     {
         $html = file_get_contents($url);
@@ -76,6 +82,11 @@ class Search
             return;
         }
         $path = $urlTemp['path'];
+        $this->handlePath($path, $url, $deep);
+    }
+
+    private function handlePath($path, $url, $deep)
+    {
         switch ($path) {
             case '/':
             case '.':
@@ -85,7 +96,11 @@ class Search
                 echo '[WARNING] ' . $url . ' is itself!' . PHP_EOL;
                 break;
             default:
-                $this->lookup($this->domain . $path, $deep);
+                if (!$this->emailCheck($path)) {
+                    $this->lookup($this->domain . $path, $deep);
+                } else {
+                    echo '[WARNING] This is one email address.' . $path . PHP_EOL;
+                }
         }
     }
 
