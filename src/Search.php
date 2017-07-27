@@ -10,9 +10,8 @@ namespace ZKit\seo;
 require_once __DIR__ . '/idna/idna_convert.class.php';
 
 /**
- * This class is to Search the
- *
- * @author Thinkpad
+ * This class is to Search the sub-url under the specified url.
+ * @version 1.0
  */
 class Search
 {
@@ -25,7 +24,7 @@ class Search
     {
         $tmp = parse_url($url);
         if (false == $tmp || !array_key_exists('host', $tmp)) {
-            echo '[ERROR] Please input the right home URL for making sitemap!';
+            echo '[ERROR] Please input the right home URL for making sitemap!' . PHP_EOL;
             return array();
         }
         libxml_use_internal_errors(true);
@@ -50,6 +49,7 @@ class Search
         $dom->loadHTML($html);
         // grab all the on the page
         $xpath = new \DOMXPath($dom);
+        $this->findParam($xpath, $url);
         $hrefs = $xpath->evaluate("/html/body//a");
         for ($i = 0; $i < $hrefs->length; $i++) {
             $href = $hrefs->item($i);
@@ -111,6 +111,30 @@ class Search
             'changefreq' => 'Always',
         );
         return true;
+    }
+
+    private function findParam($xpath, $url)
+    {
+        $metas = $xpath->evaluate("/html/head/meta");
+        for ($i = 0; $i < $metas->length; $i++) {
+            $meta = $metas->item($i);
+            switch ($meta->getAttribute('name')) {
+                case 'keywords':
+                case 'description':
+                    $this->addParam($url, $meta->getAttribute('name'), $meta->getAttribute('content'));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private function addParam($url, $key, $value)
+    {
+        if (array_key_exists($url, $this->list)) {
+            echo '[INFO] Set the ' . $key . ' as ' . $value . ' for ' . $url . PHP_EOL;
+            $this->list[$url][$key] = $value;
+        }
     }
 
     private function calcPriority($deep = 0)
